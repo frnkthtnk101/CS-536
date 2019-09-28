@@ -38,8 +38,7 @@ def u_calculation(length, index, current_u_point):
 def get_matrix(file_path):
     '''
     reads in the input file and converts
-    it into a matrix. if no file given,
-    defaults to cpts_in.txt
+    it into a matrix.
     '''
     input_matrix = []
     with open(file_path, 'r') as file:
@@ -130,14 +129,6 @@ def  matrix_to_string(results_file, results_file_length):
     string_builder += '-1, ] } }\r\n'
     return string_builder
 
-def main(input_matrix, given_du, radius=0.1):
-    '''
-    The main function
-    creates the matrix then creates the final output
-    '''
-    results_matrix = calculate_arb_bezier_curve(input_matrix, given_du)
-    results_file = create_file(input_matrix, results_matrix, radius)
-    print(results_file)
 
 def parse_input(given_input, default):
     '''
@@ -173,3 +164,12 @@ if __name__ == '__main__':
         main(GIVEN_MATRIX, GIVEN_DU, GIVEN_RADIUS)
     else:
         print("du is not between/or 0 and 1")
+
+def main(input_matrix, given_du, radius=0.1):
+    '''
+    The main function
+    creates the matrix then creates the final output
+    '''
+    results_matrix = calculate_arb_bezier_curve(input_matrix, given_du)
+    results_file = create_file(input_matrix, results_matrix, radius)
+    print(results_file)
