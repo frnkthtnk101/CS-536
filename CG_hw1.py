@@ -139,6 +139,15 @@ def parse_input(given_input, default):
         return default
     return given_input
 
+def main(input_matrix, given_du, radius=0.1):
+    '''
+    The main function
+    creates the matrix then creates the final output
+    '''
+    results_matrix = calculate_arb_bezier_curve(input_matrix, given_du)
+    results_file = create_file(input_matrix, results_matrix, radius)
+    print(results_file)
+
 if __name__ == '__main__':
     '''
     parses arguements
@@ -164,12 +173,3 @@ if __name__ == '__main__':
         main(GIVEN_MATRIX, GIVEN_DU, GIVEN_RADIUS)
     else:
         print("du is not between/or 0 and 1")
-
-def main(input_matrix, given_du, radius=0.1):
-    '''
-    The main function
-    creates the matrix then creates the final output
-    '''
-    results_matrix = calculate_arb_bezier_curve(input_matrix, given_du)
-    results_file = create_file(input_matrix, results_matrix, radius)
-    print(results_file)
