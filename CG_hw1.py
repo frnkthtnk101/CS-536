@@ -139,14 +139,14 @@ def main(input_matrix, given_du, radius=0.1):
     results_file = create_file(input_matrix, results_matrix, radius)
     print(results_file)
 
-def parse_input(input, default):
+def parse_input(given_input, default):
     '''
     decides if given input or just default
     '''
-    is_not_given = input is None
+    is_not_given = given_input is None
     if is_not_given:
         return default
-    return input
+    return given_input
 
 if __name__ == '__main__':
     '''
@@ -164,13 +164,12 @@ if __name__ == '__main__':
     #requirement 1 defaults to cpts_in.txt -V
     GIVEN_MATRIX = get_matrix(parse_input(ARGS.file, './cpts_in.txt'))
     #requirement 2 du defaults to 0.05 -v
-    GIVEN_DU = float(parse_input(ARGS.upoint,0.05))
+    GIVEN_DU = float(parse_input(ARGS.upoint, 0.05))
     #requirement 2 du is between or equal to 0 and 1
     DU_IS_BETWEEN_ZERO_AND_ONE = 0 <= GIVEN_DU <= 1
     #requirement 4 spheres default to .1 -v
-    GIVEN_RADIUS = parse_input(ARGS.radius,0.1)
+    GIVEN_RADIUS = parse_input(ARGS.radius, 0.1)
     if DU_IS_BETWEEN_ZERO_AND_ONE:
         main(GIVEN_MATRIX, GIVEN_DU, GIVEN_RADIUS)
-    
     else:
         print("du is not between/or 0 and 1")
