@@ -6,6 +6,9 @@ Franco Pettigrosso
 Creates and file for Arbitrary-degree Bezier Curves
 given a file du and radios
 
+you can do a search for requirement[space][number] to go
+the locations of the requirements of the homework
+
 module references
 areparse - used to get input in python (or atleast how I know how to do it)
 factorial - used to get n! so I do not have to program it
@@ -31,11 +34,12 @@ def u_calculation(length, index, current_u_point):
     left = pow(reverse_u, pow_by)
     right = pow(current_u_point, index)
     return left * right
-
-def get_matrix(file_path):
+#requirement 1 defaults to cpts_in.txt V
+def get_matrix(file_path="./cpts_in.txt"):
     '''
     reads in the input file and converts
-    it into a matrix
+    it into a matrix. if no file given,
+    defaults to cpts_in.txt
     '''
     input_matrix = []
     with open(file_path, 'r') as file:
@@ -43,7 +47,12 @@ def get_matrix(file_path):
             temp_matrix = []
             for column in line.split(" "):
                 temp_matrix.append(float(column))
-            input_matrix.append(temp_matrix)
+            line_only_contains_three_points = len(temp_matrix) == 3
+            #reqirement 1 3d point -v
+            if line_only_contains_three_points:
+                input_matrix.append(temp_matrix)
+            else:
+                Exception('the rows can only contain 3d points')
     return input_matrix
 
 def calculate_arb_bezier_curve(input_matrix, du_point):
@@ -80,6 +89,7 @@ def create_file(input_file, results_file, radius):
 def create_sphere(radius, input_file, results_file_column_length):
     '''
     used to create a sphere in the file
+    requirement 3 the controll points are rep by spheres
     '''
     results_file_column_length_lth_zero = results_file_column_length < 0
     if results_file_column_length_lth_zero:
@@ -127,23 +137,39 @@ def main(input_matrix, given_du, radius=0.1):
     results_file = create_file(input_matrix, results_matrix, radius)
     print(results_file)
 
+def parse_input(input, default):
+    
+
 if __name__ == '__main__':
     '''
     parses arguements
     '''
     PARSER = argparse.ArgumentParser()
     ARG_GROUP = PARSER.add_argument_group()
+    #requirement 1 -f for filename --v
     ARG_GROUP.add_argument('-f', '--file', help='The matrix with he input', type=str)
+    #requirement 2 -u for du --v
     ARG_GROUP.add_argument('-u', '--upoint', help='use the best', type=str)
     ARG_GROUP.add_argument('-r', '--radius', help='radius of the spheres', type=str)
     ARGS = PARSER.parse_args()
-    GIVEN_MATRIX = get_matrix(ARGS.file)
+    NO_FILE_GIVEN = ARGS.file is None
+    if NO_FILE_GIVEN:
+        GIVEN_MATRIX = get_matrix()
+    else:
+        GIVEN_MATRIX = get_matrix(ARGS.file)
     try:
-        GIVEN_DU = float(ARGS.upoint)
+        NO_DU_GIVEN = ARGS.upoint is None
+        if NO_DU_GIVEN:
+            #requirement 2 default .05 for du -v
+            GIVEN_DU = 0.05
+        else:
+            GIVEN_DU = float(ARGS.upoint)
+        #requirement 2 du is between or equal to 0 and 1
         DU_IS_BETWEEN_ZERO_AND_ONE = 0 <= GIVEN_DU <= 1
     except:
         Exception("du is not a float")
     if DU_IS_BETWEEN_ZERO_AND_ONE:
         main(GIVEN_MATRIX, GIVEN_DU, ARGS.radius)
+    
     else:
         print("du is not between/or 0 and 1")
