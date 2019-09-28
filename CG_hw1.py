@@ -34,8 +34,8 @@ def u_calculation(length, index, current_u_point):
     left = pow(reverse_u, pow_by)
     right = pow(current_u_point, index)
     return left * right
-#requirement 1 defaults to cpts_in.txt V
-def get_matrix(file_path="./cpts_in.txt"):
+
+def get_matrix(file_path):
     '''
     reads in the input file and converts
     it into a matrix. if no file given,
@@ -78,8 +78,10 @@ def calculate_arb_bezier_curve(input_matrix, du_point):
 def create_file(input_file, results_file, radius):
     '''
     abstracted function that creates the file
+    #requirement 7 open inventor format
     '''
     results_file_length = len(results_file)
+    #requirement 5 degree N-1 -v
     input_file_length = len(input_file) - 1
     string_builder = "#Inventor V2.0 ascii \r\n"
     string_builder += matrix_to_string(results_file, results_file_length)
@@ -138,7 +140,13 @@ def main(input_matrix, given_du, radius=0.1):
     print(results_file)
 
 def parse_input(input, default):
-    
+    '''
+    decides if given input or just default
+    '''
+    is_not_given = input is None
+    if is_not_given:
+        return default
+    return input
 
 if __name__ == '__main__':
     '''
@@ -150,26 +158,19 @@ if __name__ == '__main__':
     ARG_GROUP.add_argument('-f', '--file', help='The matrix with he input', type=str)
     #requirement 2 -u for du --v
     ARG_GROUP.add_argument('-u', '--upoint', help='use the best', type=str)
+    #requirement 4 spheres modification -r -v
     ARG_GROUP.add_argument('-r', '--radius', help='radius of the spheres', type=str)
     ARGS = PARSER.parse_args()
-    NO_FILE_GIVEN = ARGS.file is None
-    if NO_FILE_GIVEN:
-        GIVEN_MATRIX = get_matrix()
-    else:
-        GIVEN_MATRIX = get_matrix(ARGS.file)
-    try:
-        NO_DU_GIVEN = ARGS.upoint is None
-        if NO_DU_GIVEN:
-            #requirement 2 default .05 for du -v
-            GIVEN_DU = 0.05
-        else:
-            GIVEN_DU = float(ARGS.upoint)
-        #requirement 2 du is between or equal to 0 and 1
-        DU_IS_BETWEEN_ZERO_AND_ONE = 0 <= GIVEN_DU <= 1
-    except:
-        Exception("du is not a float")
+    #requirement 1 defaults to cpts_in.txt -V
+    GIVEN_MATRIX = get_matrix(parse_input(ARGS.file, './cpts_in.txt'))
+    #requirement 2 du defaults to 0.05 -v
+    GIVEN_DU = float(parse_input(ARGS.upoint,0.05))
+    #requirement 2 du is between or equal to 0 and 1
+    DU_IS_BETWEEN_ZERO_AND_ONE = 0 <= GIVEN_DU <= 1
+    #requirement 4 spheres default to .1 -v
+    GIVEN_RADIUS = parse_input(ARGS.radius,0.1)
     if DU_IS_BETWEEN_ZERO_AND_ONE:
-        main(GIVEN_MATRIX, GIVEN_DU, ARGS.radius)
+        main(GIVEN_MATRIX, GIVEN_DU, GIVEN_RADIUS)
     
     else:
         print("du is not between/or 0 and 1")
