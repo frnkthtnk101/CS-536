@@ -11,7 +11,7 @@
             "request": "launch",
             "program": "${file}",
             "args": [
-                "-f /Users/francopettigrosso/ws/CS-536/matrix.txt",
+                "-f/Users/francopettigrosso/ws/CS-536/matrix.txt",
                 "-u .025",
                 "-r .5"
             ],
