@@ -63,7 +63,7 @@ def calculate_arb_bezier_curve(input_matrix, du_point):
     rows_length = len(input_matrix) - 1
     #used to when determining what axis the script is on
     columns = len(input_matrix[0])
-    for current_u_point in arange(0.0, 1.01, du_point):
+    for current_u_point in arange(0.0, 1.01, (1/du_point)):
         temp_columns = [0.0] * columns
         for index_row in range(0, rows_length + 1):
             for axis_index in range(0, columns):
@@ -157,16 +157,16 @@ if __name__ == '__main__':
     #requirement 1 -f for filename --v
     ARG_GROUP.add_argument('-f', '--file', help='The matrix with he input', type=str)
     #requirement 2 -u for du --v
-    ARG_GROUP.add_argument('-u', '--upoint', help='use the best', type=str)
+    ARG_GROUP.add_argument('-n', '--upoint', help='use the best', type=str)
     #requirement 4 spheres modification -r -v
     ARG_GROUP.add_argument('-r', '--radius', help='radius of the spheres', type=str)
     ARGS = PARSER.parse_args()
     #requirement 1 defaults to cpts_in.txt -V
     GIVEN_MATRIX = get_matrix(parse_input(ARGS.file, './cpts_in.txt'))
     #requirement 2 du defaults to 0.05 -v
-    GIVEN_DU = float(parse_input(ARGS.upoint, 0.05))
+    GIVEN_DU = float(parse_input(ARGS.upoint, 20))
     #requirement 2 du is between or equal to 0 and 1
-    DU_IS_BETWEEN_ZERO_AND_ONE = 0 <= GIVEN_DU <= 1
+    DU_IS_BETWEEN_ZERO_AND_ONE = True
     #requirement 4 spheres default to .1 -v
     GIVEN_RADIUS = parse_input(ARGS.radius, 0.1)
     if DU_IS_BETWEEN_ZERO_AND_ONE:
