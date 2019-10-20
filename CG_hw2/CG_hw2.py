@@ -1,5 +1,7 @@
 '''
-
+CG_hw2.py
+Franco Pettigrosso
+Produces a Catmull-Rom Spline from cords.
 '''
 import argparse
 import copy #to get a copy of the orginal inputs
@@ -19,10 +21,10 @@ def create_file(input_file, results_file, radius, number_of_points):
     '{diffuseColor 1.0 1.0 1.0}\r\n'
     string_builder += 'Coordinate3 { 	point [ \r\n'
     for i in results_file:
-        string_builder += matrix_to_string(i, number_of_points)
+        string_builder += matrix_to_string(i)
     string_builder += '] }\r\n IndexedLineSet {coordIndex ['
-    number_of_cords = (number_of_points + 1) * len(results_file) 
-    for i in range(0,int(number_of_cords)):
+    number_of_cords = (number_of_points + 1) * len(results_file)
+    for i in range(0, int(number_of_cords)):
         string_builder += '{0}, '.format(i)
     string_builder += '-1, ] } }\r\n'
     string_builder += create_sphere(radius, input_file, input_file_length)
@@ -45,16 +47,16 @@ def create_sphere(radius, input_file, results_file_column_length):
     string_builder += '}}Sphere {{	radius {0} }}}}\r\n'.format(radius)
     return string_builder + create_sphere(radius, input_file, results_file_column_length - 1)
 
-def  matrix_to_string(results_file, results_file_length):
+def  matrix_to_string(results_file):
     '''
     converts a the given matrix into the iv format
     '''
     string_builder = ''
     for index in results_file:
-            string_builder += '{:5f} {:5f} {:5f}, \r\n' \
-            .format(index[0],
-                    index[1],
-                    index[2])
+        string_builder += '{:5f} {:5f} {:5f}, \r\n' \
+        .format(index[0],
+                index[1],
+                index[2])
     return string_builder
 
 
@@ -74,10 +76,10 @@ def get_matrix(file_path):
             line_only_contains_three_points = len(temp_matrix) == 3
             #reqirement 1 3d point -v
             if line_only_contains_three_points:
-                tangent_line_below_limit = 2 > tangent_line 
+                tangent_line_below_limit = tangent_line < 2
                 if tangent_line_below_limit:
                     tangent_matrix.append(temp_matrix)
-                    tangent_line+=1
+                    tangent_line += 1
                 else:
                     input_matrix.append(temp_matrix)
 
@@ -121,12 +123,18 @@ def calculate_arb_bezier_curve(input_matrix, du_point):
         results_matrix.append(temp_columns)
     return results_matrix
 
-def calculate_Catmull_Rom_Splines(tanget_points, input_matrix, T_input, du_point):
-    tangents = create_tangent_points(tanget_points, input_matrix, T_input)
+def calculate_catmull_rom_splines(tanget_points, input_matrix, tension_input, du_point):
+    '''
+    creates the cordinates for the catmull rom spline at a high level
+    '''
+    tangents = create_tangent_points(tanget_points, input_matrix, tension_input)
     out_matrix = create_output_matrix(tangents, input_matrix, du_point)
     return out_matrix
-    
+
 def create_output_matrix(tangents, input_matrix, du_point):
+    '''
+    creates the cordinates for the catmull rom spline
+    '''
     def is_quequed(a_list):
         return len(a_list) > 1
 
@@ -136,32 +144,35 @@ def create_output_matrix(tangents, input_matrix, du_point):
         temp_points.append(input_matrix[0])
         little_points = []
         #p2
-        for i in range(0,3):
+        for i in range(0, 3):
             little_points.append(input_matrix[0][i] + (1/3) * tangents[0][i])
         temp_points.append(little_points)
         #p3
         little_points = []
-        for i in range(0,3):
+        for i in range(0, 3):
             little_points.append(input_matrix[1][i] - (1/3) * tangents[1][i])
         temp_points.append(little_points)
         #p4
         temp_points.append(input_matrix[1])
         return temp_points
-    
+
     output = []
     while is_quequed(input_matrix):
         points = set_points()
-        output.append(calculate_arb_bezier_curve(points,du_point))
+        output.append(calculate_arb_bezier_curve(points, du_point))
         input_matrix.pop(0)
         tangents.pop(0)
     return output
 
-def create_tangent_points(tanget_points, input_matrix, T_input):
+def create_tangent_points(tanget_points, input_matrix, tension_input):
+    '''
+    creates the tangent points for the bazur curve
+    '''
     temp_tans = []
     temp_tans_tuple = []
     #t0
-    for j in range(0,3):
-        temp_tans_tuple.append((1-T_input)*tanget_points[0][j])
+    for j in range(0, 3):
+        temp_tans_tuple.append((1-tension_input)*tanget_points[0][j])
     temp_tans.append(temp_tans_tuple)
     #tn-1
     length_of_matrix_minus_one = len(input_matrix) - 1
@@ -169,26 +180,30 @@ def create_tangent_points(tanget_points, input_matrix, T_input):
     if is_bigger_than_two:
         for i in range(1, length_of_matrix_minus_one):
             temp_tans_tuple = []
-            for j in range(0,3):
-                temp_tans_tuple.append((1-T_input)*0.5*(input_matrix[i+1][j]-input_matrix[i-1][j]))
+            for j in range(0, 3):
+                temp_tans_tuple.append((1-tension_input)*0.5*(input_matrix[i+1][j]\
+                    -input_matrix[i-1][j]))
             temp_tans.append(temp_tans_tuple)
     temp_tans_tuple = []
     #tn
-    for j in range(0,3):
-        temp_tans_tuple.append((1-T_input)*tanget_points[1][j])
+    for j in range(0, 3):
+        temp_tans_tuple.append((1-tension_input)*tanget_points[1][j])
     temp_tans.append(temp_tans_tuple)
     return temp_tans
 
 def main(input_file, input_n_point, input_radius, input_tension):
+    '''
+    orcherstrates the whole thing
+    '''
     input_du_point = 1/input_n_point
     input_matrix, tangent_matrix = get_matrix(input_file)
     full_matrix = copy.deepcopy(input_matrix)
-    output_matrix = calculate_Catmull_Rom_Splines(tangent_matrix, \
-    input_matrix,input_tension,input_du_point)
-    results_file = create_file(full_matrix, output_matrix, 0.05, input_n_point)
+    output_matrix = calculate_catmull_rom_splines(tangent_matrix, \
+    input_matrix, input_tension, input_du_point)
+    results_file = create_file(full_matrix, output_matrix, input_radius, input_n_point)
     print(results_file)
 
-def parse_input(given_input, default, to_number = False):
+def parse_input(given_input, default, to_number=False):
     '''
     decides if given input or just default
     '''

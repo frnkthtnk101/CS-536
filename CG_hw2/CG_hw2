@@ -1,2 +1,2 @@
 #!/bin/bash
-python3.7 ./CG_hw2.py $@
+python3.6 ./CG_hw2.py $@
