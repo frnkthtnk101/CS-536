@@ -12,7 +12,6 @@ from numpy import arange
 def create_file(input_file, results_file, radius, number_of_points):
     '''
     abstracted function that creates the file
-    #requirement 7 open inventor format
     '''
     #requirement 5 degree N-1 -v
     input_file_length = len(input_file) - 1
@@ -74,8 +73,8 @@ def get_matrix(file_path):
             for column in line.split(" "):
                 temp_matrix.append(float(column))
             line_only_contains_three_points = len(temp_matrix) == 3
-            #reqirement 1 3d point -v
             if line_only_contains_three_points:
+                #the first two lines are the tangent points
                 tangent_line_below_limit = tangent_line < 2
                 if tangent_line_below_limit:
                     tangent_matrix.append(temp_matrix)
@@ -170,7 +169,7 @@ def create_tangent_points(tanget_points, input_matrix, tension_input):
     '''
     temp_tans = []
     temp_tans_tuple = []
-    #t0
+    #t0 = 1-tension * pk
     for j in range(0, 3):
         temp_tans_tuple.append((1-tension_input)*tanget_points[0][j])
     temp_tans.append(temp_tans_tuple)
@@ -181,6 +180,7 @@ def create_tangent_points(tanget_points, input_matrix, tension_input):
         for i in range(1, length_of_matrix_minus_one):
             temp_tans_tuple = []
             for j in range(0, 3):
+                #tn-1 = 1-tension * pk * .5
                 temp_tans_tuple.append((1-tension_input)*0.5*(input_matrix[i+1][j]\
                     -input_matrix[i-1][j]))
             temp_tans.append(temp_tans_tuple)
