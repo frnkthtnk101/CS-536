@@ -1,6 +1,62 @@
+'''
+
+'''
 import argparse
+import copy #to get a copy of the orginal inputs
 from math import factorial
 from numpy import arange
+
+
+def create_file(input_file, results_file, radius, number_of_points):
+    '''
+    abstracted function that creates the file
+    #requirement 7 open inventor format
+    '''
+    #requirement 5 degree N-1 -v
+    input_file_length = len(input_file) - 1
+    string_builder = "#Inventor V2.0 ascii \r\n"
+    string_builder = 'Separator {LightModel {model BASE_COLOR} Material ' + \
+    '{diffuseColor 1.0 1.0 1.0}\r\n'
+    string_builder += 'Coordinate3 { 	point [ \r\n'
+    for i in results_file:
+        string_builder += matrix_to_string(i, number_of_points)
+    string_builder += '] }\r\n IndexedLineSet {coordIndex ['
+    number_of_cords = (number_of_points + 1) * len(results_file) 
+    for i in range(0,int(number_of_cords)):
+        string_builder += '{0}, '.format(i)
+    string_builder += '-1, ] } }\r\n'
+    string_builder += create_sphere(radius, input_file, input_file_length)
+    return string_builder
+
+def create_sphere(radius, input_file, results_file_column_length):
+    '''
+    used to create a sphere in the file
+    requirement 3 the controll points are rep by spheres
+    '''
+    results_file_column_length_lth_zero = results_file_column_length < 0
+    if results_file_column_length_lth_zero:
+        return ''
+    string_builder = 'Separator {LightModel {model PHONG}Material {	diffuseColor 1.0 1.0 1.0}'
+    string_builder += 'Transform {translation\r\n'
+    string_builder += '{0}  {1}  {2}\r\n' \
+    .format(input_file[results_file_column_length][0],
+            input_file[results_file_column_length][1],
+            input_file[results_file_column_length][2])
+    string_builder += '}}Sphere {{	radius {0} }}}}\r\n'.format(radius)
+    return string_builder + create_sphere(radius, input_file, results_file_column_length - 1)
+
+def  matrix_to_string(results_file, results_file_length):
+    '''
+    converts a the given matrix into the iv format
+    '''
+    string_builder = ''
+    for index in results_file:
+            string_builder += '{:5f} {:5f} {:5f}, \r\n' \
+            .format(index[0],
+                    index[1],
+                    index[2])
+    return string_builder
+
 
 def get_matrix(file_path):
     '''
@@ -76,16 +132,20 @@ def create_output_matrix(tangents, input_matrix, du_point):
 
     def set_points():
         temp_points = []
+        #p1
         temp_points.append(input_matrix[0])
         little_points = []
+        #p2
         for i in range(0,3):
             little_points.append(input_matrix[0][i] + (1/3) * tangents[0][i])
         temp_points.append(little_points)
-        temp_points.append(input_matrix[1])
+        #p3
         little_points = []
         for i in range(0,3):
-            little_points.append(input_matrix[1][i] + (1/3) * tangents[1][i])
+            little_points.append(input_matrix[1][i] - (1/3) * tangents[1][i])
         temp_points.append(little_points)
+        #p4
+        temp_points.append(input_matrix[1])
         return temp_points
     
     output = []
@@ -96,35 +156,64 @@ def create_output_matrix(tangents, input_matrix, du_point):
         tangents.pop(0)
     return output
 
-
-
 def create_tangent_points(tanget_points, input_matrix, T_input):
     temp_tans = []
     temp_tans_tuple = []
+    #t0
     for j in range(0,3):
         temp_tans_tuple.append((1-T_input)*tanget_points[0][j])
     temp_tans.append(temp_tans_tuple)
-    for i in range(1, len(input_matrix)-1):
-        temp_tans_tuple = []
-        for j in range(0,3):
-            temp_tans_tuple.append((1-T_input)*0.5*(input_matrix[i+1][j]-input_matrix[i-1][j]))
-        temp_tans.append(temp_tans_tuple)
+    #tn-1
+    length_of_matrix_minus_one = len(input_matrix) - 1
+    is_bigger_than_two = length_of_matrix_minus_one != 0
+    if is_bigger_than_two:
+        for i in range(1, length_of_matrix_minus_one):
+            temp_tans_tuple = []
+            for j in range(0,3):
+                temp_tans_tuple.append((1-T_input)*0.5*(input_matrix[i+1][j]-input_matrix[i-1][j]))
+            temp_tans.append(temp_tans_tuple)
     temp_tans_tuple = []
+    #tn
     for j in range(0,3):
         temp_tans_tuple.append((1-T_input)*tanget_points[1][j])
     temp_tans.append(temp_tans_tuple)
     return temp_tans
 
-
-#n = 40 (du = 0.025), radius = 0.05, tension = 0
 def main(input_file, input_n_point, input_radius, input_tension):
     input_du_point = 1/input_n_point
     input_matrix, tangent_matrix = get_matrix(input_file)
+    full_matrix = copy.deepcopy(input_matrix)
     output_matrix = calculate_Catmull_Rom_Splines(tangent_matrix, \
-        input_matrix,input_tension,input_du_point)
-    for i in output_matrix:
-        for j in i:
-            print('\t{:5f} {:5f} {:5f},'.format(j[0],j[1],j[2]))
+    input_matrix,input_tension,input_du_point)
+    results_file = create_file(full_matrix, output_matrix, 0.05, input_n_point)
+    print(results_file)
 
+def parse_input(given_input, default, to_number = False):
+    '''
+    decides if given input or just default
+    '''
+    is_not_given = given_input is None
+    if is_not_given:
+        if to_number:
+            return float(default)
+        return default
+    if to_number:
+        return float(given_input)
+    return given_input
 
-main("/Users/francopettigrosso/ws/CS-536/CG_hw2/input.txt",20,.05,0)
+if __name__ == '__main__':
+    '''
+    parses arguements
+    '''
+    PARSER = argparse.ArgumentParser()
+    ARG_GROUP = PARSER.add_argument_group()
+    ARG_GROUP.add_argument('-f', '--file', help='The matrix with he input', type=str)
+    ARG_GROUP.add_argument('-n', '--upoint', help='use the best', type=str)
+    ARG_GROUP.add_argument('-r', '--radius', help='radius of the spheres', type=str)
+    ARG_GROUP.add_argument('-t', '--tension', help='the tighness', type=str)
+    ARGS = PARSER.parse_args()
+    GIVEN_FILE = parse_input(ARGS.file, './cpts_in.txt')
+    GIVEN_N = parse_input(ARGS.upoint, 11, True)
+    GIVEN_RADIUS = parse_input(ARGS.radius, 0.1, True)
+    GIVEN_TENSION = parse_input(ARGS.tension, 0, True)
+    main(GIVEN_FILE, GIVEN_N, GIVEN_RADIUS, GIVEN_TENSION)
