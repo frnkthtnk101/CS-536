@@ -5,15 +5,12 @@
     "version": "0.2.0",
     "configurations": [
 
+
         {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "args": [
-                "-u .025",
-                "-r .5"
-            ],
             
             "console": "integratedTerminal"
         }
