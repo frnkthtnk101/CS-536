@@ -40,13 +40,23 @@ def parse_input(given_input, default, to_number=False):
         return float(given_input)
     return given_input
 
-def split-up
+def split_up(list_to_split_up):
+    temp_x = []
+    temp_y = []
+    temp_z = []
+    for row in list_to_split_up:
+        temp_x.append(row[0])
+        temp_y.append(row[1])
+        temp_z.append(row[2])
+    return temp_x, temp_y, temp_z
+
+
 
 #GIVEN_FILE, GIVEN_U, GIVEN_V, GIVEN_RADIUS, surface_options.flat
 def main(file_path, u_point, v_point, radius, surface_option):
     raw_matrix = get_matrix(file_path)
     #cut them up in columns so its easier to work with
-    column_x, column_y, column_z = split-up(raw_matrix)
+    column_x, column_y, column_z = split_up(raw_matrix)
 
 if __name__ == '__main__':
     '''
