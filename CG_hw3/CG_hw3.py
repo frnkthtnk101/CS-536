@@ -54,6 +54,23 @@ blend = lambda x: [pow(1-x, 3), 3*x*pow(1-x, 2), 3*pow(x, 2)*(1-x), pow(x, 3)]
 
 def blend_and_create_triangle_points(columns, u_point, v_point):
     temp_list = []
+    i, j = 0, 0
+    u_points = arange(0, 1/u_point, 1.01)
+    v_points = arange(0, 1/v_point, 1.01)
+    index_under_limit = lambda x,y : x < y
+    while(index_under_limit(i,u_point)):
+        while(index_under_limit(j,v_point)):
+            blended_u = blend(u_points)
+            blended_v = blend(v_points)
+            vert_point = 0
+            for k in range(0,4):
+                vert_point += blended_u * blended_v * columns[k][0]
+                vert_point += blended_u * blended_v * columns[k][1]
+                vert_point += blended_u * blended_v * columns[k][2]
+                vert_point += blended_u * blended_v * columns[k][3]
+            temp_list.append(vert_point)
+            j+= 1
+        i += 1
     return temp_list
 
 #GIVEN_FILE, GIVEN_U, GIVEN_V, GIVEN_RADIUS, surface_options.flat
