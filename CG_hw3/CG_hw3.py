@@ -50,13 +50,21 @@ def split_up(list_to_split_up):
         temp_z.append(row[2] * 1.0)
     return temp_x, temp_y, temp_z
 
+blend = lambda x: [pow(1-x, 3), 3*x*pow(1-x, 2), 3*pow(x, 2)*(1-x), pow(x, 3)]
 
+def blend_and_create_triangle_points(columns, u_point, v_point):
+    temp_list = []
+    return temp_list
 
 #GIVEN_FILE, GIVEN_U, GIVEN_V, GIVEN_RADIUS, surface_options.flat
 def main(file_path, u_point, v_point, radius, surface_option):
     raw_matrix = get_matrix(file_path)
     #cut them up in columns so its easier to work with
     column_x, column_y, column_z = split_up(raw_matrix)
+    column_x = blend_and_create_triangle_points(column_x, u_point, v_point)
+    column_y = blend_and_create_triangle_points(column_y, u_point, v_point)
+    column_z = blend_and_create_triangle_points(column_z, u_point, v_point)    
+        
 
 if __name__ == '__main__':
     '''
