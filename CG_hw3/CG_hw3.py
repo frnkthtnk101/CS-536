@@ -45,9 +45,9 @@ def split_up(list_to_split_up):
     temp_y = []
     temp_z = []
     for row in list_to_split_up:
-        temp_x.append(row[0])
-        temp_y.append(row[1])
-        temp_z.append(row[2])
+        temp_x.append(row[0] * 1.0)
+        temp_y.append(row[1] * 1.0)
+        temp_z.append(row[2] * 1.0)
     return temp_x, temp_y, temp_z
 
 
