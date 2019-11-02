@@ -8,6 +8,23 @@ class surface_options(Enum):
     flat = 1
     smooth = 2
 
+def control_point_calculation(length, index):
+    '''
+    This is the (k,u) part of the equation
+    '''
+    return factorial(length) / (factorial(index) * factorial(length - index))
+
+def u_calculation(length, index, current_u_point):
+    '''
+    This is the far right side of the equation
+    '''
+    reverse_u = 1 - current_u_point
+    pow_by = length - index
+    left = pow(reverse_u, pow_by)
+    right = pow(current_u_point, index)
+    return left * right
+
+
 def get_matrix(file_path):
     '''
     reads in the input file and converts
@@ -52,7 +69,7 @@ def split_up(list_to_split_up):
 
 blend = lambda x: [pow(1-x, 3), 3*x*pow(1-x, 2), 3*pow(x, 2)*(1-x), pow(x, 3)]
 
-def blend_and_create_triangle_points(columns, u_point, v_point):
+def blend_for_columns(columns, u_point, v_point):
     temp_list = []
     i, j = 0, 0
     u_points = arange(0, 1/u_point, 1.01)
@@ -73,14 +90,40 @@ def blend_and_create_triangle_points(columns, u_point, v_point):
         i += 1
     return temp_list
 
+def define_triangles(blended_matrix, u_point, v_point):
+    the_triangles = []
+    for i in len(arange(0,1/u_point,1.01) - 2):
+        for j in len(arange(0,1/v_point,1.01) - 2):
+            triangle_1 = list(
+                blended_matrix[i][j],
+                blended_matrix[i+1][j],
+                blended_matrix[i+1][j+1],
+            )
+            triangle_2 = list(
+                blended_matrix[i][j],
+                blended_matrix[i+1][j+1],
+                blended_matrix[i][j+1]
+            )
+            the_triangles.append(triangle_1)
+            the_triangles.append(triangle_2)
+    return the_triangles
+
+
 #GIVEN_FILE, GIVEN_U, GIVEN_V, GIVEN_RADIUS, surface_options.flat
 def main(file_path, u_point, v_point, radius, surface_option):
     raw_matrix = get_matrix(file_path)
     #cut them up in columns so its easier to work with
     column_x, column_y, column_z = split_up(raw_matrix)
-    column_x = blend_and_create_triangle_points(column_x, u_point, v_point)
-    column_y = blend_and_create_triangle_points(column_y, u_point, v_point)
-    column_z = blend_and_create_triangle_points(column_z, u_point, v_point)    
+    column_x = blend_for_columns(column_x, u_point, v_point)
+    column_y = blend_for_columns(column_y, u_point, v_point)
+    column_z = blend_for_columns(column_z, u_point, v_point)
+    #put them back together
+    blended_matrix = list( zip(column_x,column_y,column_z))
+    #time to do triangles
+    triangle_cords = []
+    for i in range(0,len(blended_matrix)):
+        triangle_cords.append(define_triangles(blended_matrix, u_point, v_point))
+
         
 
 if __name__ == '__main__':
