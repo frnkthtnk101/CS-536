@@ -1,7 +1,7 @@
 import argparse
 import copy #to get a copy of the orginal inputs
 from math import factorial
-from numpy import arange
+import numpy as np
 from enum import Enum
 
 class surface_options(Enum):
@@ -108,21 +108,50 @@ def define_triangles(blended_matrix, u_point, v_point):
             the_triangles.append(triangle_2)
     return the_triangles
 
+def normalize_for_shading(colum_x, column_y, column_z, u_point, v_point):
+    #https://www.guru99.com/numpy-dot-product.html
+    column_x_as_numpy_array = np.array(colum_x)
+    column_y_as_nump_array = np.array(column_y)
+    column_z_as_nump_array = np.array(column_z)
+    i, j = 0, 0
+    u_points = arange(0, 1/u_point, 1.01)
+    v_points = arange(0, 1/v_point, 1.01)
+    index_under_limit = lambda x,y : x < y
+    while index_under_limit(i,u_point):
+        while index_under_limit(j,v_point):
+
+def get_tangent(column_x, column_y, column_z, u_point, v_point):
+    t_part = np.array([3 * pow(u_point, 2),2 * u,1,0])
+    s_part = np.array([pow(v_point, 3),pow(v_point, 2),v,1])
+    m_part = np.array([[-1, 3, -3, 1],[3, -6, 3, 0], [-3, 3, 0, 0], [1, 0, 0, 0]])
+    return np.array([t_part.dot(m_part).dot(column_x).dot(np.transpose(s_part.dot(m_part))), t_part.dot(m_part).dot(column_y).dot(np.transpose(s_part.dot(m_part))), t_part.dot(m_part).dot(column_z).dot(np.transpose(s_part.dot(m_part)))])
+
+
 
 #GIVEN_FILE, GIVEN_U, GIVEN_V, GIVEN_RADIUS, surface_options.flat
 def main(file_path, u_point, v_point, radius, surface_option):
     raw_matrix = get_matrix(file_path)
     #cut them up in columns so its easier to work with
     column_x, column_y, column_z = split_up(raw_matrix)
-    column_x = blend_for_columns(column_x, u_point, v_point)
-    column_y = blend_for_columns(column_y, u_point, v_point)
-    column_z = blend_for_columns(column_z, u_point, v_point)
+
     #put them back together
-    blended_matrix = list( zip(column_x,column_y,column_z))
+    #https://www.geeksforgeeks.org/zip-in-python/
+    blended_matrix = list( 
+        zip(
+            blend_for_columns(column_x, u_point, v_point),
+            blend_for_columns(column_y, u_point, v_point),
+            blend_for_columns(column_z, u_point, v_point)
+        )
+    )
+
     #time to do triangles
     triangle_cords = []
     for i in range(0,len(blended_matrix)):
         triangle_cords.append(define_triangles(blended_matrix, u_point, v_point))
+    
+    #normalize
+    normalized_points = normalize()
+    
 
         
 
