@@ -21,8 +21,8 @@ class given_args():
         self.u_point = u_input
         self.v_point = v_input
         self.face_type = face_input
-        self.u_points = np.array(0,1.01, 1 / u_input)
-        self.v_points = np.array(0,1.01, 1 / v_input)
+        self.u_points = np.array(0, 1.01, 1 / u_input)
+        self.v_points = np.array(0, 1.01, 1 / v_input)
         self.u_points_len = len(self.u_points)
         self.v_points_len = len(self.v_points)
 
@@ -50,10 +50,79 @@ x_function = lambda u, v, r, t, a : a * auxiliary_function_c(v, r) * auxiliary_f
 y_function = lambda u, v, r, t, b : b * auxiliary_function_c(v,r) * auxiliary_function_s(u, t)
 z_function = lambda v, r, c: c * auxiliary_function_s(v,r)
 
+def define_triangles(blended_matrix, given_args_params):
+    '''
+    defining the triangles
+    '''
+    the_triangles = []
+    triangle_calculation = lambda x,y,z: x * y + z
+    for i in range(0, given_args_params.u_point_length - 2):
+        for j in range(0, given_args_params.v_points_len - 2):
+            triangle_1 = [
+                triangle_calculation(given_args_params.v_point,i,j),
+                triangle_calculation(given_args_params.v_point,i,j + 1),
+                triangle_calculation(given_args_params.v_point,i + 1, j + 1),
+            ]
+            triangle_2 = [
+                triangle_calculation(given_args_params.v_point,i,j),
+                triangle_calculation(given_args_params.v_point,i + 1,j + 1),
+                triangle_calculation(given_args_params.v_point,i + 1,j),
+            ]
+            the_triangles.append(triangle_1)
+            the_triangles.append(triangle_2)
+    return the_triangles
+
+def list_to_string(input_list, suffix = ',', to_float = True):
+    string_builder = ''
+    if to_float:
+        for element in input_list:
+            string_builder += '{0:.6f} {1:.6f} {2:.6f}{3}\r\n'.format(
+                element[0],
+                element[1],
+                element[2],
+                suffix
+            )
+    else:
+        for element in input_list:
+            string_builder += '{0},{1},{2},{3}\r\n'.format(
+                str(int(element[0])),
+                str(int(element[1])),
+                str(int(element[2])),
+                suffix
+            )
+    return string_builder
+
+def list_to_string_normal(input_list):
+    string_builder = ''
+    for element in input_list:
+        string_builder += '{0:.6f} {1:.6f} {2:.6f},\r\n'.format(
+            element[0],
+            element[1],
+            element[2]
+        )
+    return string_builder
+
+def create_file(points, normalized_points, triangle_points, face_type):
+    is_smooth_shaded = face_type is surface_options.smooth
+    string_builder  = '#Inventor V2.0 ascii\r\nShapeHints {\r\n vertexOrdering COUNTERCLOCKWISE \r\n}\r\n'
+    string_builder += 'Separator {\r\n Coordinate3 {\r\npoint [\r\n'
+    string_builder += list_to_string(points)
+    string_builder += ']\r\n}\r\n'
+    if is_smooth_shaded:
+        string_builder += 'NormalBinding {\r\nvalue PER_VERTEX_INDEXED}\r\nNormal {\r\nvector [\r\n'
+        string_builder += list_to_string_normal(normalized_points)
+        string_builder += ']\r\n}\r\n'
+    string_builder += 'IndexedFaceSet {\r\ncoordIndex[\r\n'
+    string_builder += list_to_string(triangle_points,'-1,', False)
+    string_builder += ']\r\n}\r\n}'
+    print(string_builder)
+
 def main(given_args_params):
     points = []
     normalized_points = []
+    triangle_points = []
     #gen points
+    points.append([0.0,0.0,1])
     for u_point in given_args_params.u_points:
         for v_point in given_args_params.v_points:
             points.append(
@@ -70,9 +139,9 @@ def main(given_args_params):
                 z_function( v_point, 2 - given_args_params.r_s1, 1 / given_args_params.c_scalar),
                 ]
             )
-
-
-    
+    points.append([0.0, 0.0, -1.0])
+    triangle_points = define_triangles(points, given_args_params)
+    create_file(points,normalized_points,triangle_points,given_args_params.face_type)
 
 if __name__ == '__main__':
     '''
