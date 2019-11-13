@@ -226,7 +226,7 @@ if __name__ == '__main__':
         r_input=parse_input(ARGS.s1, 1, True),
         t_input=parse_input(ARGS.s2, 1, True),
         u_input=parse_input(ARGS.u_iteration, 19, True),
-        v_input=parse_input(ARGS.v_iteration, 19, True),
+        v_input=parse_input(ARGS.v_iteration, 9, True),
         face_input=FACE_INPUT
     )
     main(INPUTS)

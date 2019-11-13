@@ -18,3 +18,6 @@ starting point - bash CG_hw4
 
 other files:
 CG_hw4.py - this is where the main is at
+
+
+normalized points are calculated at line 181 - 196
