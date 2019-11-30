@@ -6,8 +6,7 @@ Creates the robot arm
 import argparse
 import numpy as np
 
-
-class given_args():
+class GivenArgs():
     '''
     puts all the args and properties
     in a convient package.
@@ -33,7 +32,10 @@ def parse_input(given_input, default, to_number=False):
         return float(given_input)
     return given_input
 
-def Translate(axis_x=0.0, axis_y=0.0, axis_z=0.0 ):
+def translate_object(axis_x=0.0, axis_y=0.0, axis_z=0.0):
+    '''
+    used to move boxes around.
+    '''
     return [
         [1.0, 0.0, 0.0, 0.0],
         [0.0, 1.0, 0.0, 0.0],
@@ -41,20 +43,28 @@ def Translate(axis_x=0.0, axis_y=0.0, axis_z=0.0 ):
         [axis_x, axis_y, axis_z, 1.0]
     ]
 
-get_radian = lambda x: np.radians(x)
-get_cos = lambda x: np.cos(get_radian(x))
-get_sin = lambda x: np.sin(get_radian(x))
+#shorten what I had to do to get the angles
+GET_COS = lambda x: np.cos(np.radians(x))
+GET_SIN = lambda x: np.sin(np.radians(x))
 
 def get_degrees(theta):
+    '''
+    function to get the angles quickly.
+    returns a dictionary so everything
+    is computed after this leaves
+    '''
     degrees = {}
-    degrees['sin'] = get_sin(theta)
-    degrees['minus_sin'] = get_sin(theta) * -1.0
-    degrees['cos'] = get_cos(theta)
-    degrees['minus_cos'] = get_cos(theta) * -1.0
+    degrees['sin'] = GET_SIN(theta)
+    degrees['minus_sin'] = GET_SIN(theta) * -1.0
+    degrees['cos'] = GET_COS(theta)
+    degrees['minus_cos'] = GET_COS(theta) * -1.0
     return degrees
 
 
 def axis_x_rotation(degrees):
+    '''
+    rotating on the x
+    '''
     return [
         [1.0, 0.0, 0.0, 0.0],
         [0.0, degrees['cos'], degrees['sin'], 0.0],
@@ -63,6 +73,9 @@ def axis_x_rotation(degrees):
     ]
 
 def axis_y_rotation(degrees):
+    '''
+    rotating on the y
+    '''
     return [
         [degrees['cos'], 0.0, degrees['minus_sin'], 0.0],
         [0.0, 1.0, 0.0, 0.0],
@@ -71,6 +84,9 @@ def axis_y_rotation(degrees):
     ]
 
 def axis_z_rotation(degrees):
+    '''
+    rotating on the z
+    '''
     return [
         [degrees['cos'], degrees['sin'], 0.0, 0.0],
         [degrees['minus_sin'], degrees['cos'], 0.0, 0.0],
@@ -79,30 +95,44 @@ def axis_z_rotation(degrees):
     ]
 
 def define_model(length):
+    '''
+    the model that I used.
+    '''
     return [
-        [0.5, 0.5, length, 1], 
-        [-0.5, 0.5, length, 1], 
-        [-0.5, -0.5, length, 1], 
-        [0.5, -0.5, length, 1], 
-        [0.5, 0.5, 0, 1], 
-        [-0.5, 0.5, 0, 1], 
-        [-0.5, -0.5, 0, 1], 
+        [0.5, 0.5, length, 1],
+        [-0.5, 0.5, length, 1],
+        [-0.5, -0.5, length, 1],
+        [0.5, -0.5, length, 1],
+        [0.5, 0.5, 0, 1],
+        [-0.5, 0.5, 0, 1],
+        [-0.5, -0.5, 0, 1],
         [0.5, -0.5, 0, 1]
     ]
 
 def create_model(translation, rotation, length, last_dot_product=None):
+    '''
+    create the box given the translation, rotation, and lenght.
+    the last dot product is used to string the boxes together.
+    '''
     model = np.array(define_model(length))
     translation = np.array(translation)
     rotation = np.array(rotation)
     last_dot_product_none = last_dot_product is None
     if last_dot_product_none:
         dot_product_translation_rotation = translation.dot(rotation)
-        return np.matmul(model, dot_product_translation_rotation )[:,[0,1,2]], dot_product_translation_rotation
-    dot_product_translation_rotation = np.matmul(rotation.dot(translation),last_dot_product)
-    return np.matmul(model, dot_product_translation_rotation )[:,[0,1,2]], dot_product_translation_rotation
-    
+        results = np.matmul(model, dot_product_translation_rotation)[:, [0, 1, 2]]
+        return results, dot_product_translation_rotation
+    dot_product_translation_rotation = np.matmul(rotation.dot(translation), last_dot_product)
+    results = np.matmul(model, dot_product_translation_rotation)[:, [0, 1, 2]]
+    return results, dot_product_translation_rotation  
 
 def create_separator(input_list, object_type='box'):
+    '''
+    will create a box or circler in cad format. the function
+    always assumes that you want to create a box.
+    if you want to create a circle just change the value of
+    object_type to something other than box
+    '''
     is_box = object_type == 'box'
     if is_box:
         string_builder = '''Separator {
@@ -161,6 +191,10 @@ Sphere {
     return string_builder
 
 def create_file(box_1, box_2, box_3, circle_last):
+    '''
+    creates the the file. using static points as
+    recomended. prints to std out.
+    '''
     string_builder = '''Separator {
   Coordinate3 {
     point [
@@ -196,40 +230,39 @@ def create_file(box_1, box_2, box_3, circle_last):
     string_builder += create_separator(box_2)
     string_builder += create_separator(box_3)
     string_builder += create_separator(circle_last, 'circle')
-    string_builder += create_separator([0.0,0.0,0.0], 'circle')
+    string_builder += create_separator([0.0, 0.0, 0.0], 'circle')
     print(string_builder)
 
 def main(given_args_params):
-    #translate
-    box_1_translation = Translate(axis_z=1.0)
+    '''
+    Creates the boxes. the biggest box is always the base
+    the first sphere always assumes that the origin is [0,0,0]
+    '''
+    box_1_translation = translate_object(axis_z=1.0)
     box_1_rotation = axis_z_rotation(get_degrees(given_args_params.t1_angle))
-    box_1, box_1_dot = create_model(box_1_translation, box_1_rotation, given_args_params.lenght_1)
-
-    box_2_translation = Translate(axis_z=given_args_params.lenght_1)
+    box_1, box_1_dot = create_model(
+        box_1_translation, box_1_rotation, given_args_params.lenght_1
+        )
+    box_2_translation = translate_object(axis_z=given_args_params.lenght_1)
     box_2_rotation = axis_y_rotation(get_degrees(given_args_params.u2_angle))
-    box_2, box_2_dot = create_model(box_2_translation, box_2_rotation, given_args_params.lenght_2, box_1_dot)
-
-    box_3_translation = Translate(axis_z=given_args_params.lenght_2)
+    box_2, box_2_dot = create_model(
+        box_2_translation, box_2_rotation, given_args_params.lenght_2, box_1_dot
+        )
+    box_3_translation = translate_object(axis_z=given_args_params.lenght_2)
     box_3_rotation = axis_y_rotation(get_degrees(given_args_params.v3_angle))
-    box_3, box_3_dot = create_model(box_3_translation, box_3_rotation, given_args_params.lenght_3, box_2_dot)
-    #rotate
-    
-    sphere_two_translate = Translate(axis_z=given_args_params.lenght_3)
-    sphere_two = np.matmul(sphere_two_translate, box_3_dot)[:,[0,1,2]][3]
-    
-    #boxes
-    
-    
-    
-    #circles
-
-    #output
+    box_3, box_3_dot = create_model(
+        box_3_translation, box_3_rotation, given_args_params.lenght_3, box_2_dot
+        )
+    sphere_two_translate = translate_object(axis_z=given_args_params.lenght_3)
+    sphere_two = np.matmul(sphere_two_translate, box_3_dot)[:, [0, 1, 2]][3]
     create_file(box_1, box_2, box_3, sphere_two)
 
 
 if __name__ == '__main__':
     '''
-    parses arguements so we can make our 3d shape
+    Parses the arguements so the script can make you
+    a robot arm! This program can take no args and give
+    you something back
     '''
     PARSER = argparse.ArgumentParser()
     ARG_GROUP = PARSER.add_argument_group()
@@ -241,10 +274,10 @@ if __name__ == '__main__':
     ARG_GROUP.add_argument('-n', '--L3', type=str)
     ARGS = PARSER.parse_args()
 
-    INPUTS = given_args(
+    INPUTS = GivenArgs(
         t_input=parse_input(ARGS.O1, -51, True),
-        u_input=parse_input(ARGS.O2, 39 , True),
-        v_input=parse_input(ARGS.O3, 65 , True),
+        u_input=parse_input(ARGS.O2, 39, True),
+        v_input=parse_input(ARGS.O3, 65, True),
         l_input=parse_input(ARGS.L1, 4, True),
         m_input=parse_input(ARGS.L2, 3, True),
         n_input=parse_input(ARGS.L3, 2.5, True),
